@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "threecb_debug"
+version = "0.1.0"
+dependencies = ["inspect-ai"]
+
+[project.entry-points.inspect_ai]
+threecb_debug = "threecb_debug._registry"
+
+[tool.setuptools.packages.find]
+include = ["threecb_debug*"]

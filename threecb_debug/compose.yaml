@@ -1,0 +1,4 @@
+services:
+  default:
+    image: docker.io/swrbr/threecb@sha256:e831e8c66738810aeaabac47ef3d908747ddf8d329107002601668b0a586f9dc
+    command: "tail -f /dev/null"
