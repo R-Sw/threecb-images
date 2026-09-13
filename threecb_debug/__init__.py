@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 _COMPOSE = """services:
   default:
-    image: docker.io/swrbr/threecb@sha256:sha256:735e85df031e1beeaea3432631bea3c626a682786e699a2a017162d2bba3bf5a
+    image: docker.io/swrbr/threecb@sha256:735e85df031e1beeaea3432631bea3c626a682786e699a2a017162d2bba3bf5a
     command: "tail -f /dev/null"
 """
 
