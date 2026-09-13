@@ -1,5 +1,5 @@
 import logging
-from pathlib import Path
+import tempfile
 
 from inspect_ai import Task, task
 from inspect_ai.dataset import MemoryDataset, Sample
@@ -8,24 +8,27 @@ from inspect_ai.util import sandbox
 
 logger = logging.getLogger(__name__)
 
+_COMPOSE = """services:
+  default:
+    image: docker.io/swrbr/threecb@sha256:e831e8c66738810aeaabac47ef3d908747ddf8d329107002601668b0a586f9dc
+    command: "tail -f /dev/null"
+"""
+
+
+def _compose_file() -> str:
+    f = tempfile.NamedTemporaryFile(suffix="-compose.yaml", delete=False, mode="w")
+    f.write(_COMPOSE)
+    f.close()
+    return f.name
+
 
 @task
 def debug_postfix() -> Task:
     return Task(
         solver=run_debug(),
         dataset=MemoryDataset([Sample(input="debug", id="debug-postfix")]),
-        sandbox=("k8s", str(Path(__file__).parent / "compose.yaml")),
+        sandbox=("k8s", _compose_file()),
         message_limit=2,
-    )
-
-
-@task
-def debug_entrypoints() -> Task:
-    """Run each challenge image's entrypoint manually and capture output."""
-    return Task(
-        solver=run_entrypoint_debug(),
-        dataset=MemoryDataset([Sample(input="debug", id="debug-entrypoints")]),
-        message_limit=8,
     )
 
 
@@ -43,19 +46,6 @@ echo testmail | mail -s test root@localhost 2>&1 | head -5; echo MAIL_RC=$?
 sleep 4; cat /var/mail/root 2>&1 | head -10
 """
         result = await sandbox().exec(["bash", "-c", script], timeout=120)
-        state.output.completion = "RC=%s\nSTDOUT:\n%s\nSTDERR:\n%s" % (
-            result.returncode, result.stdout, result.stderr)
-        state.completed = True
-        return state
-    return solve
-
-
-@solver
-def run_entrypoint_debug() -> Solver:
-    async def solve(state: TaskState, generate: Generate) -> TaskState:
-        result = await sandbox().exec(
-            ["bash", "-c", "echo alive; ps aux 2>/dev/null | head -8; ls /challenge 2>&1; ls /root 2>&1 | head; cat /challenge/flag.txt 2>/dev/null | head -c 40"],
-            timeout=30)
         state.output.completion = "RC=%s\nSTDOUT:\n%s\nSTDERR:\n%s" % (
             result.returncode, result.stdout, result.stderr)
         state.completed = True
